@@ -57,6 +57,18 @@ while getopts ":i:c:sl:u" o; do
 done
 shift $((OPTIND-1))
 
+# check if youtube-dl is installed globally
+if hash youtube-dl 2>/dev/null; then
+    # youtube-dl exists globally, so
+    # call it directly to introduce it to hash builtin
+    # and test with "hash -t youtube-dl"
+    youtube-dl --version > /dev/null
+else
+    # no global youtube-dl found, so force
+    # local usage
+    USELOCALE=true
+fi
+    
 if $USELOCALE; then
     mkdir -p "./.bin"
     if [ ! -f "./.bin/youtube-dl" ]; then
@@ -64,11 +76,9 @@ if $USELOCALE; then
 	chmod a+x "./.bin/youtube-dl"
     fi
     hash -p ${BASEDIR}/.bin/youtube-dl youtube-dl
-    youtube-dl -U
+    youtube-dl -U > /dev/null
 fi
 
-# call youtube-dl directly to introduce it to hash builtin
-youtube-dl --version > /dev/zero
 echo "using $(hash -t youtube-dl) - $(youtube-dl --version)"
 
 youtube_dl(){
