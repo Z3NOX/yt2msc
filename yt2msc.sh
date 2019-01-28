@@ -68,15 +68,25 @@ else
     # local usage
     USELOCALE=true
 fi
+
+update_ytdl() {
+    wget --quiet --show-progress "https://yt-dl.org/downloads/latest/youtube-dl" -O "./.bin/youtube-dl"
+    chmod a+x "./.bin/youtube-dl"
+}
     
 if $USELOCALE; then
     mkdir -p "./.bin"
     if [ ! -f "./.bin/youtube-dl" ]; then
-	wget "https://yt-dl.org/downloads/latest/youtube-dl" -O "./.bin/youtube-dl"
-	chmod a+x "./.bin/youtube-dl"
+        echo "Downloading youtube-dl for the first time"
+	update_ytdl
     fi
     hash -p ${BASEDIR}/.bin/youtube-dl youtube-dl
-    youtube-dl -U > /dev/null
+    updatable=$(youtube-dl -U)
+    if ! echo $updatable | grep "is up-to-date"; then
+        echo "Update is needed for youtube-dl"
+	update_ytdl
+    fi
+        
 fi
 
 echo "using $(hash -t youtube-dl) - $(youtube-dl --version)"
@@ -100,7 +110,7 @@ youtube_dl(){
 if ${INTERACTIVE}; then
     # interactive mode:
     echo "You can simply paste your URLs in this terminal - either with"
-    echo "middle mouse button, using Ctrl+Shft+V, or right click and then"
+    echo "middle mouse button, using Ctrl+Shift+V, or right click and then"
     echo "choose the option to paste into the terminal."
 
     while true
