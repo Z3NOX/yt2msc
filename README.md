@@ -1,12 +1,14 @@
 # yt2msc
-Youtube to music. Download music directly from youtube using youtube-dl and convert it to a favourable format (as mp3) with ffmpeg.
+Youtube to music. Download music directly from youtube using youtube-dl and convert it to a favourable format (as mp3) with ffmpeg. This shell script is just a simple wrapper around youtube-dl which concentrates on the usage of downloading music from youtube and all other sources supported by the amazing `youtube-dl` tool (e.g. vimdeo, bandcamp, soundcloud, …)
+
+For an extensive list of supported sites, see `youtube-dl --list-extractors`
 
 ## dependencies
 * `ffmpeg`
 * `youtube-dl`, which can also be downloaded with this script in case your linux distribution does not provide a recent enough version
 
 ## usage
-There are two different mode in which yt2msc will operate.
+There are two different modes in which yt2msc will operate.
 
 ### interactively
 The default mode is an interactive mode where you can simply drop any youtube video link, youtube playlist link or youtube ID into the shell and yt2msc will immediately start to download this file and save into an audio file.
