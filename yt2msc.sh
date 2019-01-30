@@ -94,13 +94,42 @@ echo "using $(hash -t youtube-dl) - $(youtube-dl --version)"
 youtube_dl(){
     # invoke youtube-dl
     # --metadata-from-title "(?P<artist>.+?) - (?P<track>.+)[^\(\[]*[\(\[]+[^\)\]]*[\)\]]+" \
+    # --embed-thumbnail - only supported by mp3 mp4
     youtube-dl -f 251/249/bestaudio \
 	       -x ${CONVERT:+ --audio-format "${CONVERT}"} \
-	       -o '%(playlist)s/%(artist)s - %(track)s.%(ext)s' \
+	       -o "${OUTPUT}" \
 	       ${SANE:+ --restrict-filenames} \
 	       --add-metadata \
-	       "${1}"
+	       ${@}
+}
+download(){
+    # $1 - url or ID parsable by youtube-dl
+    json=".json.txt"
+    youtube_dl -J -o "random.ext" "$1" > "${json}"
 
+    typee=$(cat ${json} | jq "._type")
+    artist=$(cat "${json}" | jq ".artist")
+    track=$(cat "${json}" | jq ".track")
+    chapters=$(cat "${json}" | jq ".chapters")
+
+    if [ "${typee}" == "\"playlist\"" ]; then
+	playlist=$(cat "${json}" | jq ".title"  | tr -d "\"")
+	readarray vids < <(cat ${json} | jq ".entries[] | .id" | tr -d "\"")
+	for i in ${vids[@]}; do
+	    OUTPUT="${playlist}/"
+	    echo "download $i"
+	    download $i
+	done
+	exit
+    fi
+
+    if [ "${artist}" == "null" ] || [ "${track}" == "null" ]; then
+	OUTPUT="${OUTPUT}%(title)s.%(ext)s"
+    else
+	OUTPUT="${OUTPUT}%(artist)s - %(track)s.%(ext)s"
+    fi
+
+    youtube_dl "${1}"
     if [ ! -z $LOGFILE ] ; then
 	title=$(youtube-dl --get-title ${1})
 	echo "$1 (${title//$'\n'/\; })" >> ${LOGFILE}
@@ -120,7 +149,7 @@ if ${INTERACTIVE}; then
       if [ "$url" == "" ]; then
         exit
       fi
-      youtube_dl "$url"
+      download "$url"
     done
 fi
 
@@ -131,7 +160,7 @@ if [ -f ${INPUTFILE} ]; then
 	if [ ${#line} -le 2 ]; then
 	    continue
 	fi
-	youtube_dl ${line}
+        download ${line}
         sed -i "1d" "${INPUTFILE}.tmp"
     done < "${INPUTFILE}"
     mv "${INPUTFILE}.tmp" "${INPUTFILE}"
