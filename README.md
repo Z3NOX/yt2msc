@@ -6,6 +6,7 @@ For an extensive list of supported sites, see `youtube-dl --list-extractors`
 ## dependencies
 * `ffmpeg`
 * `youtube-dl`, which can also be downloaded with this script in case your linux distribution does not provide a recent enough version
+* `jq`
 
 ## usage
 Clone the repo

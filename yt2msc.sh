@@ -114,25 +114,60 @@ download(){
 
     if [ "${typee}" == "\"playlist\"" ]; then
 	playlist=$(cat "${json}" | jq ".title"  | tr -d "\"")
-	readarray vids < <(cat ${json} | jq ".entries[] | .id" | tr -d "\"")
-	for i in ${vids[@]}; do
-	    OUTPUT="${playlist}/"
-	    echo "download $i"
-	    download $i
-	done
-	exit
-    fi
-
-    if [ "${artist}" == "null" ] || [ "${track}" == "null" ]; then
+	OUTPUT="${playlist}/%(playlist_index)s - %(artist)s - %(track)s.%(ext)s"
+	# readarray vids < <(cat ${json} | jq ".entries[] | .id" | tr -d "\"")
+	# for i in ${vids[@]}; do
+	#     OUTPUT="${playlist}/"
+	#     echo "download $i"
+	#     download $i
+	# done
+	# exit
+    elif [ "${artist}" == "null" ] || [ "${track}" == "null" ]; then
 	OUTPUT="${OUTPUT}%(title)s.%(ext)s"
     else
 	OUTPUT="${OUTPUT}%(artist)s - %(track)s.%(ext)s"
     fi
-
+	
     youtube_dl "${1}"
+
     if [ ! -z $LOGFILE ] ; then
 	title=$(youtube-dl --get-title ${1})
 	echo "$1 (${title//$'\n'/\; })" >> ${LOGFILE}
+    fi
+
+    # postprocessing
+    # echo "DEBUG: $chapters"
+    if [ "${chapters}" != "null" ]; then
+	read -p "Chapters found! I am going to split them all! Continue (Y/n)?" choice
+        case "$choice" in
+          n|N ) exit ;;
+          * )   ;;
+        esac
+	fname=$(youtube_dl --get-filename "$1")
+	basefile=$(basename "${fname%.*}")	
+	ext=$(echo "$basefile".*) # expand to written file
+	ext=${ext##*.}          # only take extension
+	echo "DEBUG: \"${basefile}\", \"${ext}\""
+
+	mkdir -p "${basefile}"
+	i=0
+	while true; do
+	    title=$(cat "${json}" | jq ".chapters[${i}] | .title"  | tr -d "\"")
+	    tstart=$(cat "${json}" | jq ".chapters[$i] | .start_time"  | tr -d "\"")
+	    tend=$(cat "${json}" | jq ".chapters[$i] | .end_time"  | tr -d "\"")
+	    if [ "${tstart}" == "null" ]; then
+		break
+	    fi
+	    ffmpeg -i "${basefile}.${ext}" \
+		-loglevel fatal \
+		-vcodec copy \
+		-acodec copy \
+		-metadata:s:a:0 TITLE="${title}" \
+		-ss $(date --utc --date "1970-01-01 ${tstart} sec" "+%T") \
+		-to $(date --utc --date "1970-01-01 ${tend} sec" "+%T") \
+		"${basefile}/${title:=$i}.${ext}"
+	    i=$(($i + 1))
+	done
     fi
 }
 
@@ -149,6 +184,7 @@ if ${INTERACTIVE}; then
       if [ "$url" == "" ]; then
         exit
       fi
+      OUTPUT=""
       download "$url"
     done
 fi
@@ -160,6 +196,7 @@ if [ -f ${INPUTFILE} ]; then
 	if [ ${#line} -le 2 ]; then
 	    continue
 	fi
+	OUTPUT=""
         download ${line}
         sed -i "1d" "${INPUTFILE}.tmp"
     done < "${INPUTFILE}"
