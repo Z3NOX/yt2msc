@@ -1,11 +1,13 @@
-# yt2msc
-Youtube to music. Download music directly from youtube using `youtube-dl` and convert it to a favourable format (as mp3) with `ffmpeg`. This shell script is just a simple wrapper around `youtube-dl` which concentrates on the usage of downloading music from youtube and all other sources supported by the amazing `youtube-dl` tool (e.g. vimeo, bandcamp, soundcloud, …)
+**HINT**: `youtube-dl` is discontinued in favour of `yt-dlp` which is a fork of the former programm and can be used as prop in replacement"
 
-For an extensive list of supported sites, see `youtube-dl --list-extractors`
+# yt2msc
+Youtube to music. Download music directly from youtube using ~~`youtube-dl`~~ `yt-dlp` and convert it to a favourable format (as mp3) with `ffmpeg`. This shell script is just a simple wrapper around `yt-dlp` which concentrates on the usage of downloading music from youtube and all other sources supported by the amazing `yt-dlp` tool (e.g. vimeo, bandcamp, soundcloud, …)
+
+For an extensive list of supported sites, see `yt-dlp --list-extractors`
 
 ## dependencies
 * `ffmpeg`
-* `youtube-dl`, which can also be downloaded with this script in case your linux distribution does not provide a recent enough version
+* `yt-dlp`, which can also be downloaded with this script in case your linux distribution does not provide a recent enough version
 * `jq`
 
 ## usage
@@ -23,10 +25,10 @@ After the download there are two different modes in which `yt2msc` will operate.
 ### interactively
 The default mode is an interactive mode where you can simply drop any youtube video link, youtube playlist link or youtube ID into the shell and `yt2msc` will immediately start to download this file and save into an audio file.
 ```sh
-# using globally installed youtube-dl
+# using globally installed yt-dlp
 ./yt2msc.sh
 
-# using local youtube-dl script that will 
+# using local yt-dlp script that will 
 # be downloaded to ./.bin and be updated
 # in the future
 ./yt2msc.sh -u
@@ -35,7 +37,7 @@ The default mode is an interactive mode where you can simply drop any youtube vi
 ### with input file
 The other mode is using an input file
 ```sh
-# usage for using globally installed youtube-dl
+# usage for using globally installed yt-dlp
 ./yt2msc.sh -i youtube_list.txt
 ```
 where in `youtube_list.txt` every URL or youtube ID is saved on a separate line.
