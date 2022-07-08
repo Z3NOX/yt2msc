@@ -11,7 +11,7 @@ cd $BASEDIR
 usage() {
     echo "Usage: $0 [OPTIONS] URL"
     echo ""
-    echo "Uses youtube-dl to download and convert music to the current directory"
+    echo "Uses yt-dlp to download and convert music to the current directory"
     echo ""
     echo "OPTIONS:"
     echo " -i filename     read URL from input text file"
@@ -19,7 +19,7 @@ usage() {
     echo " -s              sane output filename to avoid special "
     echo "                 characters in filenames"
     echo " -l logfile      log downloads to file for later usage" 
-    echo " -u              use updated, locale youtube-dl source"
+    echo " -u              use updated, locale yt-dlp source"
     exit 1
 }
 
@@ -57,45 +57,47 @@ while getopts ":i:c:sl:u" o; do
 done
 shift $((OPTIND-1))
 
-# check if youtube-dl is installed globally
-if hash youtube-dl 2>/dev/null; then
-    # youtube-dl exists globally, so
+# check if yt-dlp is installed globally
+if hash yt-dlp 2>/dev/null; then
+    # yt-dlp exists globally, so
     # call it directly to introduce it to hash builtin
-    # and test with "hash -t youtube-dl"
-    youtube-dl --version > /dev/null
+    # and test with "hash -t yt-dlp"
+    yt-dlp --version > /dev/null
 else
-    # no global youtube-dl found, so force
+    # no global yt-dlp found, so force
     # local usage
     USELOCALE=true
 fi
 
 update_ytdl() {
-    wget --quiet --show-progress "https://yt-dl.org/downloads/latest/youtube-dl" -O "./.bin/youtube-dl"
-    chmod a+x "./.bin/youtube-dl"
+    download_url="$(curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | jq -r ' .assets[].browser_download_url | select( . | test("yt-dlp$"))')"
+    wget --quiet --show-progress "$download_url" -O "./.bin/yt-dlp"
+    chmod a+x "./.bin/yt-dlp"
 }
     
 if $USELOCALE; then
     mkdir -p "./.bin"
-    if [ ! -f "./.bin/youtube-dl" ]; then
-        echo "Downloading youtube-dl for the first time"
+    if [ ! -f "./.bin/yt-dlp" ]; then
+        echo "Downloading yt-dlp for the first time"
 	update_ytdl
     fi
-    hash -p ${BASEDIR}/.bin/youtube-dl youtube-dl
-    updatable=$(youtube-dl -U)
+    hash -p ${BASEDIR}/.bin/yt-dlp yt-dlp
+    updatable=$(yt-dlp -U)
     if ! echo $updatable | grep "is up-to-date"; then
-        echo "Update is needed for youtube-dl"
+        echo "Update is needed for yt-dlp"
 	update_ytdl
     fi
         
 fi
 
-echo "using $(hash -t youtube-dl) - $(youtube-dl --version)"
+
+echo "using $(hash -t yt-dlp) - $(yt-dlp --version)"
 
 youtube_dl(){
-    # invoke youtube-dl
+    # invoke yt-dlp
     # --metadata-from-title "(?P<artist>.+?) - (?P<track>.+)[^\(\[]*[\(\[]+[^\)\]]*[\)\]]+" \
     # --embed-thumbnail - only supported by mp3 mp4
-    youtube-dl -f 251/249/bestaudio \
+    yt-dlp -f 251/249/bestaudio \
 	       -x ${CONVERT:+ --audio-format "${CONVERT}"} \
 	       -o "${OUTPUT}" \
 	       ${SANE:+ --restrict-filenames} \
@@ -103,7 +105,7 @@ youtube_dl(){
 	       ${@}
 }
 download(){
-    # $1 - url or ID parsable by youtube-dl
+    # $1 - url or ID parsable by yt-dlp
     json=".json.txt"
     youtube_dl -J -o "random.ext" "$1" > "${json}"
 
@@ -131,7 +133,7 @@ download(){
     youtube_dl "${1}"
 
     if [ ! -z $LOGFILE ] ; then
-	title=$(youtube-dl --get-title ${1})
+	title=$(yt-dlp --get-title ${1})
 	echo "$1 (${title//$'\n'/\; })" >> ${LOGFILE}
     fi
 
