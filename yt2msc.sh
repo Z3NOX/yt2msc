@@ -69,12 +69,29 @@ else
     USELOCALE=true
 fi
 
+if ! which jq > /dev/null; then
+    echo "Please install jq on your system."
+    echo " (e.g. by running \"sudo apt install jq\")"
+    exit 1
+fi
+
+if ! which ffmpeg > /dev/null ; then
+    echo "Please install ffmpeg on your system."
+    echo " (e.g. by running \"sudo apt install ffmpeg\")"
+    exit 1
+fi
+
 update_ytdl() {
+    if ! which curl > /dev/null ; then
+        echo "Please install curl on your system."
+        echo " (e.g. by running \"sudo apt install curl\")"
+        exit 1
+    fi
     download_url="$(curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | jq -r ' .assets[].browser_download_url | select( . | test("yt-dlp$"))')"
     curl -L "$download_url" > ./.bin/yt-dlp
     chmod a+x "./.bin/yt-dlp"
 }
-    
+
 if $USELOCALE; then
     mkdir -p "./.bin"
     if [ ! -f "./.bin/yt-dlp" ]; then
