@@ -71,7 +71,7 @@ fi
 
 update_ytdl() {
     download_url="$(curl -s https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | jq -r ' .assets[].browser_download_url | select( . | test("yt-dlp$"))')"
-    wget --quiet --show-progress "$download_url" -O "./.bin/yt-dlp"
+    curl -L "$download_url" > ./.bin/yt-dlp
     chmod a+x "./.bin/yt-dlp"
 }
     
@@ -83,7 +83,7 @@ if $USELOCALE; then
     fi
     hash -p ${BASEDIR}/.bin/yt-dlp yt-dlp
     updatable=$(yt-dlp -U)
-    if ! echo $updatable | grep "is up-to-date"; then
+    if ! echo $updatable | grep "yt-dlp is up to date"; then
         echo "Update is needed for yt-dlp"
 	update_ytdl
     fi
