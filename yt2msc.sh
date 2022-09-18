@@ -132,7 +132,7 @@ download(){
     chapters=$(cat "${json}" | jq ".chapters")
 
     if [ "${typee}" == "\"playlist\"" ]; then
-	playlist=$(cat "${json}" | jq ".title"  | tr -d "\"")
+	playlist=$(cat "${json}" | jq -r ".title")
 	OUTPUT="${playlist}/%(playlist_index)s - %(artist)s - %(track)s.%(ext)s"
 	# readarray vids < <(cat ${json} | jq ".entries[] | .id" | tr -d "\"")
 	# for i in ${vids[@]}; do
@@ -171,9 +171,9 @@ download(){
 	mkdir -p "${basefile}"
 	i=0
 	while true; do
-	    title=$(cat "${json}" | jq ".chapters[${i}] | .title"  | tr -d "\"")
-	    tstart=$(cat "${json}" | jq ".chapters[$i] | .start_time"  | tr -d "\"")
-	    tend=$(cat "${json}" | jq ".chapters[$i] | .end_time"  | tr -d "\"")
+	    title=$(cat "${json}" | jq -r ".chapters[${i}] | .title")
+	    tstart=$(cat "${json}" | jq -r ".chapters[$i] | .start_time")
+	    tend=$(cat "${json}" | jq -r ".chapters[$i] | .end_time")
 	    if [ "${tstart}" == "null" ]; then
 		break
 	    fi
