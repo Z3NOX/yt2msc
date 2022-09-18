@@ -172,6 +172,7 @@ download(){
 	i=0
 	while true; do
 	    title=$(cat "${json}" | jq -r ".chapters[${i}] | .title")
+           fname_i=$(echo ${title} |  tr -d '[:cntrl:][=/=][=$=][=!=][=?=]')
 	    tstart=$(cat "${json}" | jq -r ".chapters[$i] | .start_time")
 	    tend=$(cat "${json}" | jq -r ".chapters[$i] | .end_time")
 	    if [ "${tstart}" == "null" ]; then
@@ -184,7 +185,7 @@ download(){
 		-metadata:s:a:0 TITLE="${title}" \
 		-ss $(date --utc --date "1970-01-01 ${tstart} sec" "+%T") \
 		-to $(date --utc --date "1970-01-01 ${tend} sec" "+%T") \
-		"${basefile}/${title:=$i}.${ext}"
+               "${basefile}/$(printf "%02.0f" $i) - ${fname_i}.${ext}"
 	    i=$(($i + 1))
 	done
     fi
